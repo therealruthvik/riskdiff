@@ -1,5 +1,10 @@
 # riskdiff
 
+[![npm version](https://img.shields.io/npm/v/riskdiff.svg)](https://www.npmjs.com/package/riskdiff)
+[![CI](https://github.com/therealruthvik/riskdiff/actions/workflows/test.yml/badge.svg)](https://github.com/therealruthvik/riskdiff/actions/workflows/test.yml)
+[![license](https://img.shields.io/npm/l/riskdiff.svg)](./LICENSE)
+[![node](https://img.shields.io/node/v/riskdiff.svg)](https://nodejs.org)
+
 Pre-commit risk scanner for git diffs. Flags risky changes before they hit a PR — no LLM, no API key, no backend, no signup.
 
 ```
@@ -16,6 +21,22 @@ Signals:
 Developers now spend more time reviewing AI-generated code than they do writing it. AI-generated pull requests jumped from roughly 1% to ~28% of all PRs in the past year. Single-model review tools have blind spots that only show up against a second pass — heuristics, a different model, or a human reviewer. `riskdiff` is that second pass: a local, zero-cost guardrail that catches common AI-code failure patterns before a risky commit ever reaches review.
 
 It runs in milliseconds, works offline, and has no external dependencies.
+
+## How it compares
+
+| | riskdiff | CodeRabbit / Greptile / Cursor Bugbot |
+| --- | --- | --- |
+| Runs locally pre-commit | ✅ | ❌ (PR-time, cloud) |
+| Needs an account / API key | ❌ | ✅ |
+| Sends your code to a server | ❌ | ✅ |
+| Cost | Free | Paid / per-seat |
+| Speed | Milliseconds | Seconds to minutes |
+| Semantic AI review | ❌ | ✅ |
+| Secrets / dangerous-call detection | ✅ | ✅ |
+| Configurable heuristics | ✅ | Partial |
+
+riskdiff is not an AI reviewer and does not try to be one — it is the fast,
+deterministic guardrail that runs *before* code ever reaches those tools.
 
 ## Install
 
@@ -41,12 +62,36 @@ riskdiff --against HEAD~1
 # Block on a lower threshold (default: high)
 riskdiff --staged --fail-on medium
 
-# Output JSON (for scripting or CI)
+# Output JSON / SARIF / Markdown
 riskdiff --staged --json
+riskdiff --against main --sarif > riskdiff.sarif
+riskdiff --against main --markdown
+
+# Quiet (exit code only, ideal in hooks) or verbose
+riskdiff --staged --quiet
+riskdiff --staged --verbose
 
 # Help
 riskdiff --help
 ```
+
+### Commands
+
+| Command | Description |
+| --- | --- |
+| `riskdiff init` | Scaffold `.riskdiffrc.json` and install the pre-commit hook |
+| `riskdiff baseline` | Record current signals to `.riskdiff-baseline.json` to grandfather them |
+
+### Flags
+
+| Flag | Description |
+| --- | --- |
+| `--staged` | Scan staged changes (`git diff --cached`) |
+| `--against <ref>` | Scan against a ref (e.g. `main`, `HEAD~1`) |
+| `--fail-on <level>` | Exit 1 at/above this level (`low`/`medium`/`high`, default `high`) |
+| `--json` / `--sarif` / `--markdown` | Machine-readable output formats |
+| `--quiet` / `--verbose` | Suppress the report / print the config source |
+| `--no-color` / `--no-baseline` | Disable color / ignore the baseline file |
 
 ### Exit codes
 
@@ -128,6 +173,32 @@ jobs:
 On a `pull_request` the action diffs against the PR base branch automatically.
 Inputs: `fail-on` (default `high`), `against` (override the ref), `version`
 (npm version/tag, default `latest`), `args` (extra CLI flags, e.g. `--json`).
+
+## Configuration
+
+riskdiff reads `.riskdiffrc.json`, `.riskdiffrc`, or a `"riskdiff"` key in
+`package.json`. Every weight, threshold, and pattern is overridable. Example:
+
+```json
+{
+  "failOn": "high",
+  "thresholds": { "medium": 25, "high": 50 },
+  "ignorePaths": ["dist/**", "build/**", "*.min.js"],
+  "rules": {
+    "diffSize": { "enabled": false }
+  },
+  "customRules": [
+    { "name": "no-fixme", "pattern": "FIXME", "flags": "g", "points": 5, "label": "FIXME left in code" }
+  ]
+}
+```
+
+### Suppressing false positives
+
+- Inline: add `riskdiff-ignore` on a line to skip it, or `riskdiff-disable-file`
+  anywhere in a file to skip the whole file.
+- Baseline: run `riskdiff baseline` to record existing signals to
+  `.riskdiff-baseline.json`; they are subtracted from future runs until removed.
 
 ## SARIF / GitHub code scanning
 

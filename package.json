@@ -14,6 +14,10 @@
   "bin": { "riskdiff": "bin/riskdiff.js" },
   "files": ["bin", "src", "README.md", "LICENSE"],
   "engines": { "node": ">=18" },
-  "scripts": { "test": "node --test", "prepublishOnly": "npm test" },
+  "scripts": {
+    "test": "node --test",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-exclude='test/**' --test-coverage-lines=90 --test-coverage-functions=85 --test-coverage-branches=70",
+    "prepublishOnly": "npm test"
+  },
   "publishConfig": { "access": "public" }
 }
