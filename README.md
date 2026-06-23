@@ -7,6 +7,24 @@
 
 Pre-commit risk scanner for git diffs. Flags risky changes before they hit a PR — no LLM, no API key, no backend, no signup.
 
+> **No network. No telemetry. Runs fully offline.** Your code never leaves your machine.
+
+## Quickstart
+
+Try it on your repo right now — no install:
+
+```sh
+npx riskdiff --staged
+```
+
+Wire it into the repo (writes config + installs the pre-commit hook):
+
+```sh
+npx riskdiff init
+```
+
+That's it. The next risky commit gets flagged before it lands.
+
 ```
 riskdiff: HIGH (score: 73, files: 3)
 Signals:
@@ -149,13 +167,41 @@ If you use [pre-commit](https://pre-commit.com), add this to your
 ```yaml
 repos:
   - repo: https://github.com/therealruthvik/riskdiff
-    rev: v0.2.0
+    rev: v0.4.0
     hooks:
       - id: riskdiff
 ```
 
 Then `pre-commit install`. The hook runs `riskdiff --staged --fail-on high` on
 every commit.
+
+### husky
+
+```sh
+npx husky init
+echo 'npx riskdiff --staged --fail-on high' > .husky/pre-commit
+```
+
+### lefthook
+
+```yaml
+# lefthook.yml
+pre-commit:
+  commands:
+    riskdiff:
+      run: npx riskdiff --staged --fail-on high
+```
+
+### lint-staged
+
+```json
+// package.json
+{
+  "lint-staged": {
+    "*": "riskdiff --staged --fail-on high"
+  }
+}
+```
 
 ## GitHub Action
 
