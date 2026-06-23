@@ -35,6 +35,7 @@ Options:
   --json              Output JSON instead of formatted text
   --sarif             Output SARIF 2.1.0 (for GitHub code scanning)
   --markdown          Output Markdown (for posting as a PR comment)
+  --no-fail           Report only; always exit 0 (never block)
   --quiet             Suppress the text report (rely on the exit code)
   --verbose           Print the config source alongside the report
   --no-color          Disable colored output
@@ -83,6 +84,7 @@ const sarifMode = args.includes('--sarif');
 const markdownMode = args.includes('--markdown');
 const quiet = args.includes('--quiet');
 const verbose = args.includes('--verbose');
+const noFail = args.includes('--no-fail');
 const noColor = args.includes('--no-color');
 const noBaseline = args.includes('--no-baseline');
 
@@ -174,7 +176,7 @@ if (sarifMode) {
   console.log(formatReport(report, noColor ? { color: false } : {}));
 }
 
-if (LEVEL_ORDER[report.level] >= LEVEL_ORDER[failOnLevel]) {
+if (!noFail && LEVEL_ORDER[report.level] >= LEVEL_ORDER[failOnLevel]) {
   process.exit(1);
 }
 process.exit(0);
