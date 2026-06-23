@@ -1,0 +1,45 @@
+name: 'riskdiff'
+description: 'Scan a git diff for risk signals (secrets, dangerous calls, untested code) and fail on risky changes.'
+author: 'Ruthvik'
+branding:
+  icon: 'shield'
+  color: 'red'
+
+inputs:
+  fail-on:
+    description: 'Risk level that fails the job (low | medium | high).'
+    required: false
+    default: 'high'
+  against:
+    description: 'Git ref to diff against. Defaults to the PR base branch (origin/$GITHUB_BASE_REF) when run on a pull_request.'
+    required: false
+    default: ''
+  version:
+    description: 'riskdiff version to run (npm dist-tag or version).'
+    required: false
+    default: 'latest'
+  args:
+    description: 'Additional arguments passed to riskdiff.'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - shell: bash
+      run: |
+        set -e
+        AGAINST="${{ inputs.against }}"
+        if [ -z "$AGAINST" ] && [ -n "$GITHUB_BASE_REF" ]; then
+          git fetch --no-tags --depth=1 origin "$GITHUB_BASE_REF" || true
+          AGAINST="origin/$GITHUB_BASE_REF"
+        fi
+
+        CMD="npx --yes riskdiff@${{ inputs.version }} --fail-on ${{ inputs.fail-on }} --no-color"
+        if [ -n "$AGAINST" ]; then
+          CMD="$CMD --against $AGAINST"
+        fi
+        CMD="$CMD ${{ inputs.args }}"
+
+        echo "+ $CMD"
+        eval "$CMD"

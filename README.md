@@ -105,6 +105,30 @@ repos:
 Then `pre-commit install`. The hook runs `riskdiff --staged --fail-on high` on
 every commit.
 
+## GitHub Action
+
+Run riskdiff on pull requests to block risky changes before merge:
+
+```yaml
+# .github/workflows/riskdiff.yml
+name: riskdiff
+on: pull_request
+jobs:
+  riskdiff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed so riskdiff can diff against the base branch
+      - uses: therealruthvik/riskdiff@v0.2.0
+        with:
+          fail-on: high    # low | medium | high
+```
+
+On a `pull_request` the action diffs against the PR base branch automatically.
+Inputs: `fail-on` (default `high`), `against` (override the ref), `version`
+(npm version/tag, default `latest`), `args` (extra CLI flags, e.g. `--json`).
+
 ## What it checks
 
 **Sensitive paths** — detects changes to auth, payments, config/secrets, database migrations, and access-control code. Each pattern adds weighted points.
