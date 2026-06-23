@@ -1,6 +1,6 @@
 {
   "name": "riskdiff",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Pre-commit risk scanner for AI-generated diffs. Flags risky changes (auth/payments/config touches, untested code, AI-pattern smells) before they hit a PR.",
   "keywords": [
     "git",
