@@ -8,6 +8,7 @@ import { loadConfig } from '../src/config.js';
 import { loadBaseline, fingerprintReason, BASELINE_FILENAME } from '../src/suppress.js';
 import { runInit } from '../src/init.js';
 import { toSarif } from '../src/sarif.js';
+import { toMarkdown } from '../src/markdown.js';
 
 const PKG_VERSION = (() => {
   try {
@@ -33,6 +34,7 @@ Options:
                       [default: config failOn, or high]
   --json              Output JSON instead of formatted text
   --sarif             Output SARIF 2.1.0 (for GitHub code scanning)
+  --markdown          Output Markdown (for posting as a PR comment)
   --no-color          Disable colored output
   --no-baseline       Ignore .riskdiff-baseline.json for this run
   -h, --help          Show this help
@@ -70,6 +72,7 @@ const command = args[0] && !args[0].startsWith('-') ? args[0] : null;
 const staged = args.includes('--staged');
 const jsonMode = args.includes('--json');
 const sarifMode = args.includes('--sarif');
+const markdownMode = args.includes('--markdown');
 const noColor = args.includes('--no-color');
 const noBaseline = args.includes('--no-baseline');
 
@@ -135,6 +138,8 @@ try {
 if (!diffText || !diffText.trim()) {
   if (sarifMode) {
     console.log(JSON.stringify(toSarif({ signals: [] }, { version: PKG_VERSION }), null, 2));
+  } else if (markdownMode) {
+    console.log(toMarkdown({ score: 0, level: 'LOW', reasons: [], signals: [], fileCount: 0 }));
   } else if (jsonMode) {
     console.log(JSON.stringify({ score: 0, level: 'LOW', reasons: [], fileCount: 0 }));
   } else {
@@ -147,6 +152,8 @@ const report = analyze(diffText, config, { baseline });
 
 if (sarifMode) {
   console.log(JSON.stringify(toSarif(report, { version: PKG_VERSION }), null, 2));
+} else if (markdownMode) {
+  console.log(toMarkdown(report));
 } else if (jsonMode) {
   console.log(JSON.stringify(report));
 } else {

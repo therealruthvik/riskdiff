@@ -6,6 +6,7 @@ export { THRESHOLDS } from './score.js';
 export { loadConfig, resolveConfig, DEFAULT_CONFIG } from './config.js';
 export { loadBaseline } from './suppress.js';
 export { toSarif } from './sarif.js';
+export { toMarkdown } from './markdown.js';
 
 export function getDiffText({ staged = false, against = null } = {}) {
   let cmd;
