@@ -39,6 +39,7 @@ Options:
   --verbose           Print the config source alongside the report
   --no-color          Disable colored output
   --no-baseline       Ignore .riskdiff-baseline.json for this run
+  -v, --version       Print the riskdiff version
   -h, --help          Show this help
 
 Commands:
@@ -64,6 +65,11 @@ Install as pre-commit hook:
 `.trim();
 
 const args = process.argv.slice(2);
+
+if (args.includes('--version') || args.includes('-v')) {
+  console.log(PKG_VERSION);
+  process.exit(0);
+}
 
 if (args.includes('--help') || args.includes('-h')) {
   console.log(HELP);
