@@ -68,6 +68,14 @@ export const DEFAULT_CONFIG = {
         { pattern: '\\bany\\b\\s*[:)]', flags: 'g', points: 3, label: "TypeScript 'any' escape hatch" },
       ],
     },
+    removedTests: {
+      enabled: true,
+      cap: 5,
+      keywordPattern: '\\b(it|test|describe|context|assert|expect|should)\\b',
+      keywordFlags: 'i',
+      pointsPerLine: 4,
+      deletedFilePoints: 12,
+    },
     testRatio: {
       enabled: true,
       minSourceLines: 30,
