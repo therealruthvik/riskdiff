@@ -13,6 +13,6 @@
   "bin": { "riskdiff": "./bin/riskdiff.js" },
   "files": ["bin", "src", "README.md", "LICENSE"],
   "engines": { "node": ">=18" },
-  "scripts": { "test": "node --test 'test/*.test.js'", "prepublishOnly": "npm test" },
+  "scripts": { "test": "node --test", "prepublishOnly": "npm test" },
   "publishConfig": { "access": "public" }
 }
