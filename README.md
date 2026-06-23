@@ -129,6 +129,19 @@ On a `pull_request` the action diffs against the PR base branch automatically.
 Inputs: `fail-on` (default `high`), `against` (override the ref), `version`
 (npm version/tag, default `latest`), `args` (extra CLI flags, e.g. `--json`).
 
+## SARIF / GitHub code scanning
+
+`--sarif` emits a SARIF 2.1.0 log you can upload to GitHub so findings show up in
+the repository's Security tab:
+
+```sh
+riskdiff --against origin/main --sarif > riskdiff.sarif
+```
+
+In a workflow, pair it with `github/codeql-action/upload-sarif`. Secrets and
+dangerous calls map to `error`, sensitive paths and removed tests to `warning`,
+everything else to `note`.
+
 ## What it checks
 
 **Sensitive paths** — detects changes to auth, payments, config/secrets, database migrations, and access-control code. Each pattern adds weighted points.

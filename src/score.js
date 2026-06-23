@@ -1,5 +1,5 @@
 import { RULES, applyIgnorePaths } from './rules.js';
-import { applySuppressions, applyBaseline } from './suppress.js';
+import { applySuppressions, fingerprintReason } from './suppress.js';
 import { DEFAULT_CONFIG } from './config.js';
 
 // Backwards-compatible static thresholds (default config values).
@@ -14,24 +14,23 @@ export const THRESHOLDS = { LOW: 0, MEDIUM: 25, HIGH: 50 };
 export function scoreDiff(files, config = DEFAULT_CONFIG, opts = {}) {
   const scanned = applySuppressions(applyIgnorePaths(files, config));
 
-  let score = 0;
-  let reasons = [];
+  let signals = [];
   for (const rule of RULES) {
-    const result = rule(scanned, config);
-    score += result.points;
-    reasons.push(...result.reasons);
+    signals.push(...rule(scanned, config).signals);
   }
 
   let suppressedCount = 0;
-  if (opts.baseline) {
-    const filtered = applyBaseline(score, reasons, opts.baseline);
-    score = filtered.score;
-    reasons = filtered.reasons;
-    suppressedCount = filtered.suppressedCount;
+  if (opts.baseline && opts.baseline.size > 0) {
+    const before = signals.length;
+    signals = signals.filter((s) => !opts.baseline.has(fingerprintReason(s.reason)));
+    suppressedCount = before - signals.length;
   }
+
+  const score = signals.reduce((sum, s) => sum + s.points, 0);
+  const reasons = signals.map((s) => s.reason);
 
   const { medium, high } = config.thresholds;
   const level = score >= high ? 'HIGH' : score >= medium ? 'MEDIUM' : 'LOW';
 
-  return { score, level, reasons, fileCount: scanned.length, suppressedCount };
+  return { score, level, reasons, signals, fileCount: scanned.length, suppressedCount };
 }

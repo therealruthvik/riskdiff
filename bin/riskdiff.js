@@ -1,9 +1,22 @@
 #!/usr/bin/env node
 import { writeFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { getDiffText, analyze, formatReport } from '../src/index.js';
 import { loadConfig } from '../src/config.js';
 import { loadBaseline, fingerprintReason, BASELINE_FILENAME } from '../src/suppress.js';
 import { runInit } from '../src/init.js';
+import { toSarif } from '../src/sarif.js';
+
+const PKG_VERSION = (() => {
+  try {
+    const here = dirname(fileURLToPath(import.meta.url));
+    return JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')).version;
+  } catch {
+    return '0.0.0';
+  }
+})();
 
 const LEVEL_ORDER = { LOW: 0, MEDIUM: 1, HIGH: 2 };
 
@@ -19,6 +32,7 @@ Options:
   --fail-on <level>   Exit 1 if risk meets/exceeds level (low|medium|high)
                       [default: config failOn, or high]
   --json              Output JSON instead of formatted text
+  --sarif             Output SARIF 2.1.0 (for GitHub code scanning)
   --no-color          Disable colored output
   --no-baseline       Ignore .riskdiff-baseline.json for this run
   -h, --help          Show this help
@@ -55,6 +69,7 @@ if (args.includes('--help') || args.includes('-h')) {
 const command = args[0] && !args[0].startsWith('-') ? args[0] : null;
 const staged = args.includes('--staged');
 const jsonMode = args.includes('--json');
+const sarifMode = args.includes('--sarif');
 const noColor = args.includes('--no-color');
 const noBaseline = args.includes('--no-baseline');
 
@@ -118,7 +133,9 @@ try {
 }
 
 if (!diffText || !diffText.trim()) {
-  if (jsonMode) {
+  if (sarifMode) {
+    console.log(JSON.stringify(toSarif({ signals: [] }, { version: PKG_VERSION }), null, 2));
+  } else if (jsonMode) {
     console.log(JSON.stringify({ score: 0, level: 'LOW', reasons: [], fileCount: 0 }));
   } else {
     console.log('riskdiff: no changes to scan.');
@@ -128,7 +145,9 @@ if (!diffText || !diffText.trim()) {
 
 const report = analyze(diffText, config, { baseline });
 
-if (jsonMode) {
+if (sarifMode) {
+  console.log(JSON.stringify(toSarif(report, { version: PKG_VERSION }), null, 2));
+} else if (jsonMode) {
   console.log(JSON.stringify(report));
 } else {
   console.log(formatReport(report, noColor ? { color: false } : {}));
