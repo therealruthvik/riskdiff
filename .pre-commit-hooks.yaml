@@ -1,0 +1,7 @@
+- id: riskdiff
+  name: riskdiff
+  description: Scan the staged diff for risk signals and block risky commits.
+  entry: riskdiff --staged --fail-on high
+  language: node
+  pass_filenames: false
+  always_run: true

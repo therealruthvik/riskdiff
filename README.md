@@ -66,6 +66,15 @@ riskdiff --help
 
 ## Pre-commit hook
 
+The fastest setup is `riskdiff init`, which writes a starter config and installs
+the hook for you:
+
+```sh
+riskdiff init
+```
+
+### Manual git hook
+
 Add to `.git/hooks/pre-commit`:
 
 ```sh
@@ -73,12 +82,28 @@ echo 'riskdiff --staged --fail-on high || exit 1' >> .git/hooks/pre-commit
 chmod +x .git/hooks/pre-commit
 ```
 
-Or add it manually:
+Or write it yourself:
 
 ```sh
 #!/bin/sh
 riskdiff --staged --fail-on high || exit 1
 ```
+
+### pre-commit framework
+
+If you use [pre-commit](https://pre-commit.com), add this to your
+`.pre-commit-config.yaml`:
+
+```yaml
+repos:
+  - repo: https://github.com/therealruthvik/riskdiff
+    rev: v0.2.0
+    hooks:
+      - id: riskdiff
+```
+
+Then `pre-commit install`. The hook runs `riskdiff --staged --fail-on high` on
+every commit.
 
 ## What it checks
 
