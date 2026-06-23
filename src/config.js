@@ -83,6 +83,12 @@ export const DEFAULT_CONFIG = {
       thinRatio: 0.15,
       thinPoints: 6,
     },
+    dependencyChanges: {
+      enabled: true,
+      manifestPattern: '(^|/)(package\\.json|package-lock\\.json|yarn\\.lock|pnpm-lock\\.yaml|requirements\\.txt|Pipfile(\\.lock)?|go\\.(mod|sum)|Gemfile(\\.lock)?|Cargo\\.(toml|lock)|composer\\.(json|lock))$',
+      manifestFlags: 'i',
+      points: 8,
+    },
     diffSize: {
       enabled: true,
       largeThreshold: 400,
