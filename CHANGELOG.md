@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.2.0] - 2026-06-23
 
 ### Added
 - Config system: `.riskdiffrc.json` / `.riskdiffrc` / `package.json` key, with
