@@ -34,14 +34,23 @@ function buildRegex(spec) {
   return new RegExp(spec.pattern, flags.includes('g') ? flags : flags + 'g');
 }
 
-/** Convert a glob-ish ignore pattern to a RegExp. Supports ** and *. */
+/**
+ * Convert a glob-ish ignore pattern to a RegExp.
+ * Supports `*` (within a path segment), `**` (any depth), and a leading `**\/`
+ * that also matches the repo root (so `**\/*.svg` matches `logo.svg` and
+ * `a/b/logo.svg`).
+ */
 function globToRegex(glob) {
-  const escaped = glob
+  const SS = '\u0001'; // sentinel for **/
+  const SD = '\u0002'; // sentinel for **
+  const re = glob
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*\*/g, ' ') // placeholder for **
+    .replace(/\*\*\//g, SS)
+    .replace(/\*\*/g, SD)
     .replace(/\*/g, '[^/]*')
-    .replace(/ /g, '.*');
-  return new RegExp('^' + escaped + '$');
+    .split(SS).join('(?:.*/)?')
+    .split(SD).join('.*');
+  return new RegExp('^' + re + '$');
 }
 
 /** Drop files whose path matches any ignorePaths glob. */
@@ -82,8 +91,12 @@ function scanLinePatterns(files, rule, ruleId, render) {
   const signals = [];
   for (const file of files) {
     for (const spec of rule.patterns) {
+      const skipRe = spec.skipIf ? new RegExp(spec.skipIf, spec.skipIfFlags || '') : null;
       let count = 0;
       for (const line of file.addedLines) {
+        // Skip lines that look like placeholders/env references (e.g. a
+        // hardcoded-credential pattern hitting `password = "change-me"`).
+        if (skipRe && skipRe.test(line)) continue;
         const re = buildRegex(spec);
         count += (line.match(re) || []).length;
       }

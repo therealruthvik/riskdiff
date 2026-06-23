@@ -11,7 +11,15 @@ export const DEFAULT_CONFIG = {
   thresholds: { medium: 25, high: 50 },
   failOn: 'high',
   // Glob-ish path patterns to skip entirely (matched against file path).
-  ignorePaths: [],
+  // Sensible defaults so the first run on a real repo is credible, not noisy:
+  // generated, vendored, minified, lockfile, and example/template files.
+  ignorePaths: [
+    'dist/**', 'build/**', 'out/**', 'vendor/**', 'node_modules/**',
+    '**/*.min.js', '**/*.min.css', '**/*.map', '**/*.svg',
+    '**/*.lock', '**/package-lock.json', '**/yarn.lock', '**/pnpm-lock.yaml',
+    '**/*.snap', '**/__snapshots__/**',
+    '**/*.example', '**/*.sample', '**/*.template', '**/*.dist',
+  ],
   rules: {
     sensitivePaths: {
       enabled: true,
@@ -34,14 +42,14 @@ export const DEFAULT_CONFIG = {
         { pattern: '\\bAIza[0-9A-Za-z_\\-]{35}\\b', flags: 'g', points: 50, label: 'Google API key', fix: 'Rotate the Google API key, restrict it, and load it from an environment variable.' },
         { pattern: '\\b(sk|pk)_live_[0-9A-Za-z]{16,}\\b', flags: 'g', points: 50, label: 'Stripe live key', fix: 'Roll the Stripe key in the dashboard and load it from an environment variable.' },
         { pattern: '\\beyJ[A-Za-z0-9_\\-]{10,}\\.[A-Za-z0-9_\\-]{10,}\\.[A-Za-z0-9_\\-]{10,}\\b', flags: 'g', points: 40, label: 'JWT', fix: 'Do not hardcode tokens; mint them at runtime and keep signing secrets in the environment.' },
-        { pattern: '(password|passwd|pwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret)\\s*[:=]\\s*[\'\"][^\'\"]{8,}[\'\"]', flags: 'gi', points: 30, label: 'hardcoded credential', fix: 'Move the value to an environment variable or secret manager; never commit credentials.' },
+        { pattern: '(password|passwd|pwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret)\\s*[:=]\\s*[\'\"][^\'\"]{8,}[\'\"]', flags: 'gi', points: 30, label: 'hardcoded credential', fix: 'Move the value to an environment variable or secret manager; never commit credentials.', skipIf: '(change[-_ ]?me|changeme|your[_-]|_here|<[^>]+>|x{4,}|placeholder|example|dummy|redacted|\\*{3,}|\\$\\{|process\\.env|os\\.environ|getenv)', skipIfFlags: 'i' },
       ],
     },
     dangerousCalls: {
       enabled: true,
       cap: 5,
       patterns: [
-        { pattern: '\\beval\\s*\\(', flags: 'g', points: 15, label: 'eval() call', fix: 'Avoid eval(); parse/validate input or use a safe alternative such as JSON.parse or a lookup table.' },
+        { pattern: '(?<![.\\w])eval\\s*\\(', flags: 'g', points: 15, label: 'eval() call', fix: 'Avoid eval(); parse/validate input or use a safe alternative such as JSON.parse or a lookup table.' },
         { pattern: '\\bnew Function\\s*\\(', flags: 'g', points: 12, label: 'Function constructor', fix: 'Avoid the Function constructor; use explicit logic or a real parser.' },
         { pattern: '\\bos\\.system\\s*\\(', flags: 'g', points: 15, label: 'os.system() call', fix: 'Use subprocess with an argument list (shell=False) and validated inputs.' },
         { pattern: 'shell\\s*=\\s*True', flags: 'g', points: 12, label: 'subprocess shell=True', fix: 'Set shell=False and pass arguments as a list to avoid shell injection.' },
@@ -52,7 +60,7 @@ export const DEFAULT_CONFIG = {
         { pattern: '\\.innerHTML\\s*=', flags: 'g', points: 8, label: 'innerHTML assignment', fix: 'Use textContent, or sanitize the HTML before assigning it.' },
         { pattern: '\\bdocument\\.write\\s*\\(', flags: 'g', points: 8, label: 'document.write()', fix: 'Avoid document.write; build DOM nodes or use a templating library.' },
         { pattern: '(SELECT|INSERT|UPDATE|DELETE|DROP)\\b[^\'\"]*[\'\"]\\s*\\+', flags: 'gi', points: 12, label: 'SQL string concatenation', fix: 'Use parameterized queries / prepared statements instead of string concatenation.' },
-        { pattern: '\\b(md5|sha1)\\s*\\(', flags: 'gi', points: 5, label: 'weak hash (md5/sha1)', fix: 'Use SHA-256+ for integrity; for passwords use bcrypt, scrypt, or argon2.' },
+        { pattern: '(?<![.\\w])(md5|sha1)\\s*\\(', flags: 'gi', points: 5, label: 'weak hash (md5/sha1)', fix: 'Use SHA-256+ for integrity; for passwords use bcrypt, scrypt, or argon2.' },
         { pattern: 'verify\\s*=\\s*False', flags: 'g', points: 12, label: 'TLS verification disabled', fix: 'Enable TLS verification; fix the certificate chain instead of disabling it.' },
         { pattern: 'rejectUnauthorized\\s*:\\s*false', flags: 'g', points: 12, label: 'TLS rejectUnauthorized:false', fix: 'Enable TLS verification; fix the certificate trust instead of disabling it.' },
       ],
@@ -63,7 +71,6 @@ export const DEFAULT_CONFIG = {
       patterns: [
         { pattern: '\\bcatch\\s*\\(\\s*\\w*\\s*\\)\\s*\\{\\s*\\}', flags: 'g', points: 8, label: 'empty catch block', fix: 'Handle or log the error; do not swallow exceptions silently.' },
         { pattern: '\\b(TODO|FIXME)\\b.*\\b(implement|handle|fix)\\b', flags: 'gi', points: 4, label: 'unresolved TODO/FIXME', fix: 'Resolve the TODO/FIXME or link a tracking issue before merging.' },
-        { pattern: '\\b(data|temp|result|value|item|obj)\\d?\\s*=', flags: 'g', points: 1, label: 'generic placeholder var', fix: 'Give the variable a descriptive, intention-revealing name.' },
         { pattern: 'console\\.(log|debug)\\(', flags: 'g', points: 2, label: 'leftover console.log/debug', fix: 'Remove debug logging or switch to a proper logger.' },
         { pattern: '\\bany\\b\\s*[:)]', flags: 'g', points: 3, label: "TypeScript 'any' escape hatch", fix: "Replace 'any' with a specific type, or 'unknown' with explicit narrowing." },
       ],

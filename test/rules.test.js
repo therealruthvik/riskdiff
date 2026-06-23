@@ -92,9 +92,11 @@ test('TypeScript any → +3', () => {
   assert.ok(result.points >= 3);
 });
 
-test('generic var name → +1', () => {
+test('generic var names are NOT flagged by default (too noisy)', () => {
+  // generic-var detection was removed from the default smells set in 0.4.0
+  // because `const result = ...` is everyday code, not a smell.
   const result = checkSmells([makeFile('src/x.js', ['const result = compute();'])]);
-  assert.ok(result.points >= 1);
+  assert.equal(result.points, 0);
 });
 
 test('no smells → zero points', () => {
