@@ -1,23 +1,48 @@
 {
   "name": "riskdiff",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Pre-commit risk scanner for AI-generated diffs. Flags risky changes (auth/payments/config touches, untested code, AI-pattern smells) before they hit a PR.",
-  "keywords": ["git", "git-hooks", "pre-commit", "code-review", "devops", "ai-code", "static-analysis", "diff"],
+  "keywords": [
+    "git",
+    "git-hooks",
+    "pre-commit",
+    "code-review",
+    "devops",
+    "ai-code",
+    "static-analysis",
+    "diff"
+  ],
   "homepage": "https://github.com/therealruthvik/riskdiff#readme",
-  "bugs": { "url": "https://github.com/therealruthvik/riskdiff/issues" },
-  "repository": { "type": "git", "url": "git+https://github.com/therealruthvik/riskdiff.git" },
+  "bugs": {
+    "url": "https://github.com/therealruthvik/riskdiff/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/therealruthvik/riskdiff.git"
+  },
   "license": "MIT",
   "author": "Ruthvik",
   "type": "module",
   "main": "src/index.js",
   "types": "src/index.d.ts",
-  "bin": { "riskdiff": "bin/riskdiff.js" },
-  "files": ["bin", "src", "README.md", "LICENSE"],
-  "engines": { "node": ">=18" },
+  "bin": {
+    "riskdiff": "bin/riskdiff.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "test": "node --test",
     "coverage": "node --test --experimental-test-coverage --test-coverage-exclude='test/**' --test-coverage-lines=90 --test-coverage-functions=85 --test-coverage-branches=70",
     "prepublishOnly": "npm test"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public"
+  }
 }
