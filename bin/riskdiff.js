@@ -3,6 +3,7 @@ import { writeFileSync } from 'node:fs';
 import { getDiffText, analyze, formatReport } from '../src/index.js';
 import { loadConfig } from '../src/config.js';
 import { loadBaseline, fingerprintReason, BASELINE_FILENAME } from '../src/suppress.js';
+import { runInit } from '../src/init.js';
 
 const LEVEL_ORDER = { LOW: 0, MEDIUM: 1, HIGH: 2 };
 
@@ -23,6 +24,8 @@ Options:
   -h, --help          Show this help
 
 Commands:
+  init                Scaffold .riskdiffrc.json and install the pre-commit hook
+                      (use --force to overwrite an existing config)
   baseline            Write all current signals to .riskdiff-baseline.json so
                       they are suppressed on future runs (grandfather existing
                       issues). Honors --staged / --against.
@@ -57,6 +60,13 @@ const noBaseline = args.includes('--no-baseline');
 
 const againstIdx = args.indexOf('--against');
 const against = againstIdx !== -1 ? args[againstIdx + 1] : null;
+
+// `riskdiff init` — scaffold config + install hook. Runs before config load.
+if (command === 'init') {
+  const { actions } = runInit(process.cwd(), { force: args.includes('--force') });
+  for (const a of actions) console.log(`riskdiff: ${a}`);
+  process.exit(0);
+}
 
 let config;
 try {
