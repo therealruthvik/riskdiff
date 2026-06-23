@@ -10,7 +10,7 @@
   "author": "Ruthvik",
   "type": "module",
   "main": "src/index.js",
-  "bin": { "riskdiff": "./bin/riskdiff.js" },
+  "bin": { "riskdiff": "bin/riskdiff.js" },
   "files": ["bin", "src", "README.md", "LICENSE"],
   "engines": { "node": ">=18" },
   "scripts": { "test": "node --test", "prepublishOnly": "npm test" },
