@@ -4,6 +4,7 @@ import { scoreDiff } from './score.js';
 import { DEFAULT_CONFIG } from './config.js';
 export { THRESHOLDS } from './score.js';
 export { loadConfig, resolveConfig, DEFAULT_CONFIG } from './config.js';
+export { loadBaseline } from './suppress.js';
 
 export function getDiffText({ staged = false, against = null } = {}) {
   let cmd;
@@ -22,9 +23,9 @@ export function getDiffText({ staged = false, against = null } = {}) {
   }
 }
 
-export function analyze(diffText, config = DEFAULT_CONFIG) {
+export function analyze(diffText, config = DEFAULT_CONFIG, opts = {}) {
   const files = parseDiff(diffText);
-  return scoreDiff(files, config);
+  return scoreDiff(files, config, opts);
 }
 
 /** Respect NO_COLOR env and non-TTY output by stripping ANSI. */
@@ -50,6 +51,10 @@ export function formatReport(report, opts = {}) {
   } else {
     lines.push('Signals:');
     for (const r of report.reasons) lines.push(`  • ${r}`);
+  }
+
+  if (report.suppressedCount > 0) {
+    lines.push(`(${report.suppressedCount} baselined signal(s) suppressed)`);
   }
 
   return lines.join('\n');

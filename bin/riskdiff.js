@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+import { writeFileSync } from 'node:fs';
 import { getDiffText, analyze, formatReport } from '../src/index.js';
 import { loadConfig } from '../src/config.js';
+import { loadBaseline, fingerprintReason, BASELINE_FILENAME } from '../src/suppress.js';
 
 const LEVEL_ORDER = { LOW: 0, MEDIUM: 1, HIGH: 2 };
 
@@ -17,10 +19,18 @@ Options:
                       [default: config failOn, or high]
   --json              Output JSON instead of formatted text
   --no-color          Disable colored output
+  --no-baseline       Ignore .riskdiff-baseline.json for this run
   -h, --help          Show this help
+
+Commands:
+  baseline            Write all current signals to .riskdiff-baseline.json so
+                      they are suppressed on future runs (grandfather existing
+                      issues). Honors --staged / --against.
 
 Config:
   Reads .riskdiffrc.json, .riskdiffrc, or a "riskdiff" key in package.json.
+  Inline suppression: add "riskdiff-ignore" on a line to skip it, or
+  "riskdiff-disable-file" anywhere in a file to skip the whole file.
 
 Exit codes:
   0   Pass (or no changes)
@@ -39,9 +49,11 @@ if (args.includes('--help') || args.includes('-h')) {
   process.exit(0);
 }
 
+const command = args[0] && !args[0].startsWith('-') ? args[0] : null;
 const staged = args.includes('--staged');
 const jsonMode = args.includes('--json');
 const noColor = args.includes('--no-color');
+const noBaseline = args.includes('--no-baseline');
 
 const againstIdx = args.indexOf('--against');
 const against = againstIdx !== -1 ? args[againstIdx + 1] : null;
@@ -49,6 +61,30 @@ const against = againstIdx !== -1 ? args[againstIdx + 1] : null;
 let config;
 try {
   ({ config } = loadConfig());
+} catch (err) {
+  console.error(err.message);
+  process.exit(2);
+}
+
+// `riskdiff baseline` — record current signals so they stop firing.
+if (command === 'baseline') {
+  let diff;
+  try {
+    diff = getDiffText({ staged, against });
+  } catch (err) {
+    console.error(err.message);
+    process.exit(2);
+  }
+  const report = analyze(diff, config);
+  const reasons = report.reasons.map(fingerprintReason);
+  writeFileSync(BASELINE_FILENAME, JSON.stringify({ reasons }, null, 2) + '\n');
+  console.log(`riskdiff: wrote ${reasons.length} signal(s) to ${BASELINE_FILENAME}`);
+  process.exit(0);
+}
+
+let baseline;
+try {
+  baseline = noBaseline ? new Set() : loadBaseline();
 } catch (err) {
   console.error(err.message);
   process.exit(2);
@@ -80,7 +116,7 @@ if (!diffText || !diffText.trim()) {
   process.exit(0);
 }
 
-const report = analyze(diffText, config);
+const report = analyze(diffText, config, { baseline });
 
 if (jsonMode) {
   console.log(JSON.stringify(report));
