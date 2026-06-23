@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-06-23
+
+### Changed
+- Calibrated defaults so the first run on a real repo is credible, not noisy
+  (cut roughly 60% of signals on test repos): default ignorePaths for generated/
+  vendored/minified/lockfile/example files, dropped the noisy generic-var smell,
+  placeholder/env-reference filtering for hardcoded credentials, and
+  method-call-aware eval()/md5()/sha1() patterns. Improved glob matching so a
+  leading `**/` also matches the repo root.
+
+### Added
+- `--no-fail` flag for report-only runs (always exits 0).
+- Quickstart and husky/lefthook/lint-staged recipes in the README; SECURITY.md;
+  no-network/no-telemetry guarantee and trust badges; launch kit under docs/.
+
 ## [0.3.0] - 2026-06-23
 
 ### Added
