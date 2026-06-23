@@ -23,6 +23,20 @@ export const DEFAULT_CONFIG = {
         { pattern: '(middleware|permission|acl|rbac)', flags: 'i', points: 20, label: 'access control' },
       ],
     },
+    secrets: {
+      enabled: true,
+      cap: 10,
+      patterns: [
+        { pattern: '-----BEGIN (RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----', flags: 'g', points: 50, label: 'private key' },
+        { pattern: '\\bAKIA[0-9A-Z]{16}\\b', flags: 'g', points: 50, label: 'AWS access key id' },
+        { pattern: '\\bgh[pousr]_[A-Za-z0-9]{36}\\b', flags: 'g', points: 50, label: 'GitHub token' },
+        { pattern: '\\bxox[baprs]-[A-Za-z0-9-]{10,}\\b', flags: 'g', points: 50, label: 'Slack token' },
+        { pattern: '\\bAIza[0-9A-Za-z_\\-]{35}\\b', flags: 'g', points: 50, label: 'Google API key' },
+        { pattern: '\\b(sk|pk)_live_[0-9A-Za-z]{16,}\\b', flags: 'g', points: 50, label: 'Stripe live key' },
+        { pattern: '\\beyJ[A-Za-z0-9_\\-]{10,}\\.[A-Za-z0-9_\\-]{10,}\\.[A-Za-z0-9_\\-]{10,}\\b', flags: 'g', points: 40, label: 'JWT' },
+        { pattern: '(password|passwd|pwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret)\\s*[:=]\\s*[\'\"][^\'\"]{8,}[\'\"]', flags: 'gi', points: 30, label: 'hardcoded credential' },
+      ],
+    },
     smells: {
       enabled: true,
       cap: 5,
