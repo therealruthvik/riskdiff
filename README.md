@@ -1,9 +1,11 @@
 # riskdiff
 
 [![npm version](https://img.shields.io/npm/v/riskdiff.svg)](https://www.npmjs.com/package/riskdiff)
+[![npm downloads](https://img.shields.io/npm/dm/riskdiff.svg)](https://www.npmjs.com/package/riskdiff)
 [![CI](https://github.com/therealruthvik/riskdiff/actions/workflows/test.yml/badge.svg)](https://github.com/therealruthvik/riskdiff/actions/workflows/test.yml)
 [![license](https://img.shields.io/npm/l/riskdiff.svg)](./LICENSE)
 [![node](https://img.shields.io/node/v/riskdiff.svg)](https://nodejs.org)
+[![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./package.json)
 
 Pre-commit risk scanner for git diffs. Flags risky changes before they hit a PR — no LLM, no API key, no backend, no signup.
 
