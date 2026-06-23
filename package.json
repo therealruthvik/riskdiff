@@ -1,0 +1,18 @@
+{
+  "name": "riskdiff",
+  "version": "0.1.0",
+  "description": "Pre-commit risk scanner for AI-generated diffs. Flags risky changes (auth/payments/config touches, untested code, AI-pattern smells) before they hit a PR.",
+  "keywords": ["git", "git-hooks", "pre-commit", "code-review", "devops", "ai-code", "static-analysis", "diff"],
+  "homepage": "https://github.com/therealruthvik/riskdiff#readme",
+  "bugs": { "url": "https://github.com/therealruthvik/riskdiff/issues" },
+  "repository": { "type": "git", "url": "git+https://github.com/therealruthvik/riskdiff.git" },
+  "license": "MIT",
+  "author": "Ruthvik",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": { "riskdiff": "./bin/riskdiff.js" },
+  "files": ["bin", "src", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "scripts": { "test": "node --test 'test/*.test.js'", "prepublishOnly": "npm test" },
+  "publishConfig": { "access": "public" }
+}
