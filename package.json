@@ -10,6 +10,7 @@
   "author": "Ruthvik",
   "type": "module",
   "main": "src/index.js",
+  "types": "src/index.d.ts",
   "bin": { "riskdiff": "bin/riskdiff.js" },
   "files": ["bin", "src", "README.md", "LICENSE"],
   "engines": { "node": ">=18" },

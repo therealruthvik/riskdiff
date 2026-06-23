@@ -35,6 +35,8 @@ Options:
   --json              Output JSON instead of formatted text
   --sarif             Output SARIF 2.1.0 (for GitHub code scanning)
   --markdown          Output Markdown (for posting as a PR comment)
+  --quiet             Suppress the text report (rely on the exit code)
+  --verbose           Print the config source alongside the report
   --no-color          Disable colored output
   --no-baseline       Ignore .riskdiff-baseline.json for this run
   -h, --help          Show this help
@@ -73,6 +75,8 @@ const staged = args.includes('--staged');
 const jsonMode = args.includes('--json');
 const sarifMode = args.includes('--sarif');
 const markdownMode = args.includes('--markdown');
+const quiet = args.includes('--quiet');
+const verbose = args.includes('--verbose');
 const noColor = args.includes('--no-color');
 const noBaseline = args.includes('--no-baseline');
 
@@ -87,8 +91,9 @@ if (command === 'init') {
 }
 
 let config;
+let configSource;
 try {
-  ({ config } = loadConfig());
+  ({ config, source: configSource } = loadConfig());
 } catch (err) {
   console.error(err.message);
   process.exit(2);
@@ -142,7 +147,7 @@ if (!diffText || !diffText.trim()) {
     console.log(toMarkdown({ score: 0, level: 'LOW', reasons: [], signals: [], fileCount: 0 }));
   } else if (jsonMode) {
     console.log(JSON.stringify({ score: 0, level: 'LOW', reasons: [], fileCount: 0 }));
-  } else {
+  } else if (!quiet) {
     console.log('riskdiff: no changes to scan.');
   }
   process.exit(0);
@@ -156,7 +161,10 @@ if (sarifMode) {
   console.log(toMarkdown(report));
 } else if (jsonMode) {
   console.log(JSON.stringify(report));
-} else {
+} else if (!quiet) {
+  if (verbose) {
+    console.log(`riskdiff: config from ${configSource || 'defaults'}`);
+  }
   console.log(formatReport(report, noColor ? { color: false } : {}));
 }
 
