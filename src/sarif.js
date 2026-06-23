@@ -26,24 +26,27 @@ export function toSarif(report, opts = {}) {
   const signals = report.signals || [];
 
   // Collect the distinct rules that actually fired, in stable order.
-  const seen = new Set();
+  const seen = new Map();
   const rules = [];
   for (const s of signals) {
     if (seen.has(s.ruleId)) continue;
-    seen.add(s.ruleId);
-    rules.push({
+    seen.set(s.ruleId, true);
+    const rule = {
       id: s.ruleId,
       name: RULE_NAMES[s.ruleId] || s.ruleId,
       shortDescription: { text: RULE_NAMES[s.ruleId] || s.ruleId },
       defaultConfiguration: { level: RULE_SEVERITY[s.ruleId] || 'note' },
-    });
+    };
+    if (s.remediation) rule.help = { text: s.remediation };
+    rules.push(rule);
   }
 
   const results = signals.map((s) => {
+    const message = s.remediation ? `${s.reason}\nFix: ${s.remediation}` : s.reason;
     const result = {
       ruleId: s.ruleId,
       level: s.severity || RULE_SEVERITY[s.ruleId] || 'note',
-      message: { text: s.reason },
+      message: { text: message },
     };
     if (s.path) {
       result.locations = [

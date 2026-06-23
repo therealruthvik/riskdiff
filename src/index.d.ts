@@ -13,6 +13,7 @@ export interface Signal {
   path: string | null;
   points: number;
   reason: string;
+  remediation: string;
   severity: Severity;
 }
 

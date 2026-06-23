@@ -17,8 +17,15 @@ export const RULE_SEVERITY = {
 };
 
 /** Build one structured signal. `path` may be null for repo-level findings. */
-function signal(ruleId, path, points, reason) {
-  return { ruleId, path: path ?? null, points, reason, severity: RULE_SEVERITY[ruleId] || 'note' };
+function signal(ruleId, path, points, reason, remediation = '') {
+  return {
+    ruleId,
+    path: path ?? null,
+    points,
+    reason,
+    remediation,
+    severity: RULE_SEVERITY[ruleId] || 'note',
+  };
 }
 
 /** Build a RegExp from a {pattern, flags} spec, forcing the global flag. */
@@ -57,7 +64,7 @@ export function checkSensitivePaths(files, config = DEFAULT_CONFIG) {
       if (re.test(file.path)) {
         points += spec.points;
         signals.push(signal('sensitivePaths', file.path, spec.points,
-          `Touches ${spec.label} path: ${file.path} (+${spec.points})`));
+          `Touches ${spec.label} path: ${file.path} (+${spec.points})`, spec.fix));
       }
     }
   }
@@ -84,7 +91,7 @@ function scanLinePatterns(files, rule, ruleId, render) {
       if (capped > 0) {
         const pts = capped * spec.points;
         points += pts;
-        signals.push(signal(ruleId, file.path, pts, render(file, spec, capped, pts)));
+        signals.push(signal(ruleId, file.path, pts, render(file, spec, capped, pts), spec.fix));
       }
     }
   }
@@ -124,7 +131,7 @@ export function checkRemovedTests(files, config = DEFAULT_CONFIG) {
     if (file.status === 'deleted') {
       points += rule.deletedFilePoints;
       signals.push(signal('removedTests', file.path, rule.deletedFilePoints,
-        `Test file deleted: ${file.path} (+${rule.deletedFilePoints})`));
+        `Test file deleted: ${file.path} (+${rule.deletedFilePoints})`, rule.fix));
       continue;
     }
 
@@ -138,7 +145,7 @@ export function checkRemovedTests(files, config = DEFAULT_CONFIG) {
       const pts = capped * rule.pointsPerLine;
       points += pts;
       signals.push(signal('removedTests', file.path, pts,
-        `${file.path}: ${capped} test/assertion line(s) removed (+${pts})`));
+        `${file.path}: ${capped} test/assertion line(s) removed (+${pts})`, rule.fix));
     }
   }
   return withReasons(points, signals);
@@ -163,11 +170,11 @@ export function checkTestRatio(files, config = DEFAULT_CONFIG) {
 
   if (sourceLines >= rule.minSourceLines && testLines === 0) {
     return withReasons(rule.noTestPoints, [signal('testRatio', null, rule.noTestPoints,
-      `${sourceLines} lines added across ${sourceFileCount} source file(s), 0 test lines (+${rule.noTestPoints})`)]);
+      `${sourceLines} lines added across ${sourceFileCount} source file(s), 0 test lines (+${rule.noTestPoints})`, rule.fix)]);
   }
   if (testLines > 0 && testLines < sourceLines * rule.thinRatio) {
     return withReasons(rule.thinPoints, [signal('testRatio', null, rule.thinPoints,
-      `Test coverage thin: ${testLines} test lines vs ${sourceLines} source lines (+${rule.thinPoints})`)]);
+      `Test coverage thin: ${testLines} test lines vs ${sourceLines} source lines (+${rule.thinPoints})`, rule.fix)]);
   }
   return empty();
 }
@@ -183,7 +190,7 @@ export function checkDependencyChanges(files, config = DEFAULT_CONFIG) {
     if (re.test(file.path) && file.addedLines.length > 0) {
       points += rule.points;
       signals.push(signal('dependencyChanges', file.path, rule.points,
-        `Dependency manifest changed: ${file.path} (+${rule.points})`));
+        `Dependency manifest changed: ${file.path} (+${rule.points})`, rule.fix));
     }
   }
   return withReasons(points, signals);
@@ -196,11 +203,11 @@ export function checkDiffSize(files, config = DEFAULT_CONFIG) {
   const total = files.reduce((sum, f) => sum + f.addedLines.length, 0);
   if (total > rule.largeThreshold) {
     return withReasons(rule.largePoints, [signal('diffSize', null, rule.largePoints,
-      `Large diff: ${total} lines added (+${rule.largePoints})`)]);
+      `Large diff: ${total} lines added (+${rule.largePoints})`, rule.fix)]);
   }
   if (total > rule.mediumThreshold) {
     return withReasons(rule.mediumPoints, [signal('diffSize', null, rule.mediumPoints,
-      `Medium diff: ${total} lines added (+${rule.mediumPoints})`)]);
+      `Medium diff: ${total} lines added (+${rule.mediumPoints})`, rule.fix)]);
   }
   return empty();
 }
@@ -225,7 +232,7 @@ export function checkCustomRules(files, config = DEFAULT_CONFIG) {
         const pts = count * spec.points;
         points += pts;
         signals.push(signal('custom', file.path, pts,
-          `${file.path}: ${spec.label || spec.name} x${count} (+${pts})`));
+          `${file.path}: ${spec.label || spec.name} x${count} (+${pts})`, spec.fix || ''));
       }
     }
   }

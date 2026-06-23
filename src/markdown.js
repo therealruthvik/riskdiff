@@ -15,13 +15,14 @@ export function toMarkdown(report) {
     lines.push('No risk signals found. ✅');
   } else {
     lines.push('');
-    lines.push('| Severity | Signal |');
-    lines.push('| --- | --- |');
+    lines.push('| Severity | Signal | Suggested fix |');
+    lines.push('| --- | --- | --- |');
     for (const s of signals) {
       const sev = SEVERITY_ICON[s.severity] || '🔵';
       // escape pipes so the table renders
       const text = s.reason.replace(/\|/g, '\\|');
-      lines.push(`| ${sev} | ${text} |`);
+      const fix = (s.remediation || '').replace(/\|/g, '\\|');
+      lines.push(`| ${sev} | ${text} | ${fix} |`);
     }
   }
 

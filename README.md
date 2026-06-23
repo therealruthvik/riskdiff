@@ -10,11 +10,18 @@ Pre-commit risk scanner for git diffs. Flags risky changes before they hit a PR 
 ```
 riskdiff: HIGH (score: 73, files: 3)
 Signals:
-  • Touches auth path: src/auth/middleware.js (+25)
   • Touches payments path: src/stripe/checkout.js (+30)
+      ↳ Require a second reviewer; verify amount validation and idempotency are tested.
   • src/auth/middleware.js: empty catch block x2 (+16)
+      ↳ Handle or log the error; do not swallow exceptions silently.
   • 87 lines added across 3 source file(s), 0 test lines (+15)
+      ↳ Add tests covering the new code paths before merging.
 ```
+
+Every finding comes with a one-line fix instruction, so the report tells a
+developer what to change — not just what is wrong. The fix shows inline in the
+text report, as a "Suggested fix" column in `--markdown`, and in the SARIF
+`help` text surfaced by GitHub code scanning.
 
 ## Why
 

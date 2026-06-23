@@ -48,11 +48,15 @@ export function formatReport(report, opts = {}) {
     `${color}riskdiff: ${report.level}${RESET} (score: ${report.score}, files: ${report.fileCount})`,
   ];
 
-  if (report.reasons.length === 0) {
+  const signals = report.signals || report.reasons.map((r) => ({ reason: r, remediation: '' }));
+  if (signals.length === 0) {
     lines.push('No risk signals found.');
   } else {
     lines.push('Signals:');
-    for (const r of report.reasons) lines.push(`  • ${r}`);
+    for (const s of signals) {
+      lines.push(`  • ${s.reason}`);
+      if (s.remediation) lines.push(`      ↳ ${s.remediation}`);
+    }
   }
 
   if (report.suppressedCount > 0) {

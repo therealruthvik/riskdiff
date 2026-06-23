@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-06-23
+
+### Added
+- Remediation guidance: every signal now carries a `remediation` string telling
+  the developer what to change. Shown inline under each finding in the text
+  report, as a "Suggested fix" column in Markdown, and embedded in SARIF result
+  messages and rule `help` so it surfaces in GitHub code scanning.
+
 ## [0.2.1] - 2026-06-23
 
 ### Added
